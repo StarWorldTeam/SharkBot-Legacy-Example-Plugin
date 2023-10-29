@@ -1,0 +1,76 @@
+//file:noinspection GrDeprecatedAPIUsage
+import groovy.util.slurpersupport.GPathResult
+
+import java.nio.file.Files
+import java.util.function.Function
+import java.util.function.Supplier
+
+String getSharkBuildPath (String ext) {
+    return getPath(getBuildDir().getPath(), "shark", ext)
+}
+
+static String getPath (String... list) {
+    return String.join(File.separator, list)
+}
+
+File sharkBotJar (String sharkBotVersion) {
+    return cache(
+        "SharkBot-${sharkBotVersion}.jar",
+        () -> new URL("https://jitpack.io/com/github/StarWorldTeam/SharkBot/${sharkBotVersion}/SharkBot-${sharkBotVersion}-plain.jar").openStream().readAllBytes()
+    )
+}
+
+File cache (String fileName, Supplier<byte[]> byteArray) {
+    var file = new File(getSharkBuildPath(getPath("cache", fileName)))
+    if (file.exists()) return file
+    file.createNewFile()
+    Files.write(file.toPath(), byteArray.get())
+    return file
+}
+
+static Function <Object, Object> sharkBotDependenciesIgnored (GPathResult result)  {
+    return (i) -> {
+        if (i["groupId"] == "org.springframework.boot" && i["artifactId"] == "spring-boot-starter")
+            result.getProperty("dependencyManagement")["dependencies"]["dependency"].each {
+                dependency -> {
+                    if (dependency["groupId"] == "org.springframework.boot" && dependency["artifactId"] == "spring-boot-dependencies")
+                        i = Map.of("groupId", i["groupId"], "artifactId", i["artifactId"], "version", dependency["version"], "scope", "runtime")
+                }
+            }
+        return i
+    }
+}
+
+@SuppressWarnings('GrDeprecatedAPIUsage')
+Map <String, List <String>> sharkBotDependencies (String sharkBotVersion) {
+    var parsed = new XmlSlurper().parse(
+        cache(
+            "SharkBot-${sharkBotVersion}.pom",
+            () -> new URL("https://jitpack.io/com/github/StarWorldTeam/SharkBot/${sharkBotVersion}/SharkBot-${sharkBotVersion}.pom").openStream().readAllBytes()
+        )
+    )
+    var map = new HashMap <String, List <String>> ()
+    parsed.getProperty("dependencies")["dependency"].each {
+        dependency -> {
+            dependency = sharkBotDependenciesIgnored(parsed).apply(dependency)
+            if (dependency == null) return
+            var type = dependency["scope"]
+            if (!map.containsKey(type)) map.put(String.valueOf(type), new ArrayList())
+            map.get(type).add(
+                "${dependency["groupId"]}:${dependency["artifactId"]}:${dependency["version"]}"
+            )
+        }
+    }
+    return map
+}
+
+dependencies {
+    implementation fileTree(sharkBotJar("${version_shark}"))
+
+    // Shark Dependencies
+    {
+        def sharkDependencies = sharkBotDependencies("${version_shark}")
+        implementation sharkDependencies.get("runtime")
+    }
+}
+
