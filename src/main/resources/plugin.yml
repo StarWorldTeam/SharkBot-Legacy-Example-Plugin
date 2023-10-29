@@ -2,4 +2,4 @@ name: ExamplePlugin # 插件名称
 id: example_plugin # 插件标识符，格式[a-z][0-9][_]
 mainClassName: org.example.ExamplePlugin # Java主类
 description: 插件介绍 # 插件介绍
-version: 1.0.0
+version: UNKNOWN # 插件版本

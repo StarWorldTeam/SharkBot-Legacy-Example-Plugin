@@ -29,7 +29,7 @@ File cache (String fileName, Supplier <byte[]> byteArray) {
     return file
 }
 
-static Function <Object, Object> sharkBotDependenciesIgnored (GPathResult result)  {
+static Function <Object, Object> sharkBotDependenciesModify (GPathResult result)  {
     return (i) -> {
         if (i["groupId"] == "org.springframework.boot" && i["artifactId"] == "spring-boot-starter")
             result.getProperty("dependencyManagement")["dependencies"]["dependency"].each {
@@ -53,7 +53,7 @@ Map <String, List <String>> sharkBotDependencies (String sharkBotVersion) {
     var map = new HashMap <String, List <String>> ()
     parsed.getProperty("dependencies")["dependency"].each {
         dependency -> {
-            dependency = sharkBotDependenciesIgnored(parsed).apply(dependency)
+            dependency = sharkBotDependenciesModify(parsed).apply(dependency)
             if (dependency == null) return
             var type = dependency["scope"]
             if (!map.containsKey(type)) map.put(String.valueOf(type), new ArrayList())
