@@ -20,7 +20,7 @@ public class ExamplePlugin {
     }
 
     private void onResourceLoadFinish (ResourceLoadFinishEvent event) {
-        LOGGER.info(Component.translatable("example_plugin.message").toString());
+        LOGGER.info(Component.translatable("example_plugin.message").getString());
     }
 
 }
