@@ -20,9 +20,10 @@ File sharkBotJar (String sharkBotVersion) {
     )
 }
 
-File cache (String fileName, Supplier<byte[]> byteArray) {
+File cache (String fileName, Supplier <byte[]> byteArray) {
     var file = new File(getSharkBuildPath(getPath("cache", fileName)))
     if (file.exists()) return file
+    file.getParentFile().mkdirs()
     file.createNewFile()
     Files.write(file.toPath(), byteArray.get())
     return file
