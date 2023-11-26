@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import team.starworld.shark.SharkBotApplication;
 import team.starworld.shark.data.plugin.Plugin;
+import team.starworld.shark.event.application.CommonSetupEvent;
 import team.starworld.shark.event.application.plugin.PluginLoadEvent;
-import team.starworld.shark.event.application.resource.AllResourceLoadedEvent;
 import team.starworld.shark.network.chat.Component;
 
 @SuppressWarnings("unused")
@@ -16,10 +16,10 @@ public class ExamplePlugin {
     public static final Logger LOGGER = LoggerFactory.getLogger(ExamplePlugin.class);
 
     public ExamplePlugin (PluginLoadEvent event) {
-        SharkBotApplication.RESOURCE_LOADER.eventBus.once(AllResourceLoadedEvent.class, this::onAllResourceLoaded);
+        SharkBotApplication.EVENT_BUS.once(CommonSetupEvent.class, this::commonSetup);
     }
 
-    private void onAllResourceLoaded (AllResourceLoadedEvent event) {
+    private void commonSetup (CommonSetupEvent event) {
         LOGGER.info(Component.translatable("example_plugin.message").getString());
     }
 
